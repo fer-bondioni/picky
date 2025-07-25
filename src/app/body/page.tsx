@@ -8,34 +8,44 @@ type ColorItem = { name: string; hex: string };
 
 export default function BodyPage() {
   const [name, setName] = useState("");
+  // Store pickedColors as hex codes
   const [pickedColors, setPickedColors] = useState<string[]>([]);
+  // Store regionColors as hex codes
   const [regionColors, setRegionColors] = useState<{ [region: string]: string | null }>({ torso: null, arms: null, legs: null });
+  // Store dragColor as hex code
   const [dragColor, setDragColor] = useState<string | null>(null);
 
   useEffect(() => {
     setName(localStorage.getItem("picky_name") || "");
   }, []);
 
-  function pickColor(color: string) {
-    if (pickedColors.length < 5 && !pickedColors.includes(color)) {
-      setPickedColors([...pickedColors, color]);
+  // Pick color by hex
+  function pickColor(colorName: string) {
+    const colorObj = colorList.find((c) => c.name === colorName);
+    if (!colorObj) return;
+    if (pickedColors.length < 5 && !pickedColors.includes(colorObj.hex)) {
+      setPickedColors([...pickedColors, colorObj.hex]);
     }
   }
 
-  function removePickedColor(color: string) {
-    setPickedColors(pickedColors.filter((c) => c !== color));
-    // Optionally, also remove from regionColors if assigned
+  // Remove picked color by hex
+  function removePickedColor(hex: string) {
+    setPickedColors(pickedColors.filter((c) => c !== hex));
     setRegionColors((prev) => {
       const updated = { ...prev };
       Object.keys(updated).forEach((region) => {
-        if (updated[region] === color) updated[region] = null;
+        if (updated[region] === hex) updated[region] = null;
       });
       return updated;
     });
   }
 
-  function handleDragStart(color: string) {
-    setDragColor(color);
+  function handleDragStart(hex: string) {
+    setDragColor(hex);
+  }
+
+  function handleDragEnd() {
+    setDragColor(null);
   }
 
   function handleDrop(region: string) {
@@ -85,24 +95,26 @@ export default function BodyPage() {
         </svg>
         {/* Picked colors with remove button */}
         <div className="flex gap-2 mb-4">
-          {pickedColors.map((color) => {
-            const colorObj = colorList.find((c) => c.name === color);
+          {pickedColors.map((hex) => {
+            const colorObj = colorList.find((c) => c.hex === hex);
             return (
               <div
-                key={color}
+                key={hex}
                 className="relative group flex flex-col items-center"
                 draggable
-                onDragStart={() => handleDragStart(color)}
-                title={colorObj?.name || color}
+                onDragStart={() => handleDragStart(hex)}
+                onDragEnd={handleDragEnd}
+                title={colorObj?.name || hex}
+                style={{ opacity: dragColor === hex ? 0.5 : 1 }}
               >
                 <div
                   className="w-10 h-10 rounded shadow border-2 border-white cursor-grab"
-                  style={{ background: colorObj?.hex || color }}
+                  style={{ background: hex }}
                 ></div>
                 {/* Remove button */}
                 <button
                   className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-80 hover:opacity-100"
-                  onClick={() => removePickedColor(color)}
+                  onClick={() => removePickedColor(hex)}
                   aria-label="Eliminar color"
                   type="button"
                 >
@@ -110,7 +122,7 @@ export default function BodyPage() {
                 </button>
                 {/* Tooltip */}
                 <span className="absolute bottom-[-1.5rem] left-1/2 -translate-x-1/2 bg-black text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-10">
-                  {colorObj?.name || color}
+                  {colorObj?.name || hex}
                 </span>
               </div>
             );
@@ -140,7 +152,7 @@ export default function BodyPage() {
               onClick={() => pickColor(color.name)}
               title={color.name}
               type="button"
-              disabled={pickedColors.includes(color.name)}
+              disabled={pickedColors.includes(color.hex)}
             >
               {/* Tooltip */}
               <span className="absolute bottom-[-1.5rem] left-1/2 -translate-x-1/2 bg-black text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-10">
