@@ -37,7 +37,8 @@ export default function Home() {
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Enter" && name.trim()) {
-      localStorage.setItem("picky_name", name.trim());
+      const userName = name.trim();
+      localStorage.setItem("picky_name", userName);
       router.push("/body");
     }
   }
@@ -46,7 +47,9 @@ export default function Home() {
     <div
       className="min-h-screen flex flex-col items-center justify-center transition-colors duration-1000"
       style={{
-        background: `linear-gradient(120deg, ${hslToColorName(bgHue)}, ${hslToColorName((bgHue + 60) % 360)})`,
+        background: `linear-gradient(120deg, ${hslToColorName(
+          bgHue
+        )}, ${hslToColorName((bgHue + 60) % 360)})`,
       }}
     >
       <h1

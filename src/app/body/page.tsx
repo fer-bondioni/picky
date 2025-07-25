@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { colorList, specialNames } from "../../../picky/src/specialNames";
+import { userPlaylists } from "../../../picky/src/spotifyPlaylists";
 import { useRouter } from "next/navigation";
 
 const BODY_REGIONS = ["torso", "brazos", "piernas"];
@@ -19,7 +20,26 @@ export default function BodyPage() {
   const router = useRouter();
 
   useEffect(() => {
-    setName(localStorage.getItem("picky_name") || "");
+    const storedName = localStorage.getItem("picky_name") || "";
+    setName(storedName);
+
+    // Agregar el reproductor de Spotify si el usuario tiene una playlist
+    if (storedName && userPlaylists[storedName]) {
+      const iframe = document.createElement("iframe");
+      // Agregamos autoplay=1 y añadimos hide_preview=1 para forzar reproducción completa
+      iframe.src = `https://open.spotify.com/embed/playlist/${userPlaylists[storedName]}?utm_source=generator&theme=0&autoplay=1&hide_preview=1`;
+      iframe.width = "400";
+      iframe.height = "80";
+      iframe.allow = "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture";
+      iframe.style.cssText = "border-radius: 12px; position: fixed; bottom: 20px; right: 20px; z-index: 1000;";
+      document.body.appendChild(iframe);
+    }
+
+    // Cleanup function para remover el reproductor cuando se desmonte el componente
+    return () => {
+      const iframes = document.querySelectorAll('iframe[src*="spotify"]');
+      iframes.forEach(iframe => iframe.remove());
+    };
   }, []);
 
   // Check if all regions are colored
@@ -101,8 +121,8 @@ export default function BodyPage() {
       return;
     }
 
-    // Get the names of the colors applied to the body regions
-    const appliedColorNames = Object.values(regionColors)
+    // Get the colors currently applied to body regions
+    const appliedColors = Object.values(regionColors)
       .filter((hex): hex is string => hex !== null)
       .map(hex => {
         const colorObj = colorList.find(c => c.hex === hex);
@@ -110,12 +130,13 @@ export default function BodyPage() {
       })
       .filter((name): name is string => name !== undefined);
 
-    // Check if user applied at least 2 of their special colors
-    const matchingColors = appliedColorNames.filter(colorName => 
+    // Check if the applied colors match the user's special colors
+    const matchingColors = appliedColors.filter(colorName => 
       userSpecialColors.includes(colorName)
     );
 
-    if (matchingColors.length >= 2) {
+    // All colors must match the user's special colors for approval
+    if (matchingColors.length === appliedColors.length && appliedColors.length > 0) {
       setFernandoAnswer("Fernando está de acuerdo");
     } else {
       setFernandoAnswer("Fernando te condena");
