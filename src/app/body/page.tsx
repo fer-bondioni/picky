@@ -1,8 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
 import { colorList } from "../../../picky/src/specialNames";
+import { useRouter } from "next/navigation";
 
-const BODY_REGIONS = ["torso", "arms", "legs"];
+const BODY_REGIONS = ["torso", "brazos", "piernas"];
 
 type ColorItem = { name: string; hex: string };
 
@@ -11,9 +12,10 @@ export default function BodyPage() {
   // Store pickedColors as hex codes
   const [pickedColors, setPickedColors] = useState<string[]>([]);
   // Store regionColors as hex codes
-  const [regionColors, setRegionColors] = useState<{ [region: string]: string | null }>({ torso: null, arms: null, legs: null });
+  const [regionColors, setRegionColors] = useState<{ [region: string]: string | null }>({ torso: null, brazos: null, piernas: null });
   // Store dragColor as hex code
   const [dragColor, setDragColor] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     setName(localStorage.getItem("picky_name") || "");
@@ -59,8 +61,21 @@ export default function BodyPage() {
     e.preventDefault();
   }
 
+  function goBackToOrigin() {
+    router.push("/");
+  }
+
   return (
     <div className="min-h-screen flex bg-gray-200">
+      {/* Back button */}
+      <button
+        onClick={goBackToOrigin}
+        className="absolute top-4 left-4 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md transition-colors"
+        type="button"
+      >
+        Volver al origen
+      </button>
+      
       <div className="flex flex-col items-center justify-center flex-1">
         <h1 className="text-3xl font-bold mb-2">{name}</h1>
         {/* Inline SVG for body */}
@@ -74,22 +89,22 @@ export default function BodyPage() {
             <rect x="75" y="80" width="50" height="100" rx="25" fill={regionColors.torso || "#E0E0E0"} />
           </g>
           <g
-            id="arms"
-            onDrop={() => handleDrop("arms")}
+            id="brazos"
+            onDrop={() => handleDrop("brazos")}
             onDragOver={handleDragOver}
             style={{ cursor: "pointer" }}
           >
-            <rect x="40" y="90" width="30" height="90" rx="15" fill={regionColors.arms || "#C0C0C0"} />
-            <rect x="130" y="90" width="30" height="90" rx="15" fill={regionColors.arms || "#C0C0C0"} />
+            <rect x="40" y="90" width="30" height="90" rx="15" fill={regionColors.brazos || "#C0C0C0"} />
+            <rect x="130" y="90" width="30" height="90" rx="15" fill={regionColors.brazos || "#C0C0C0"} />
           </g>
           <g
-            id="legs"
-            onDrop={() => handleDrop("legs")}
+            id="piernas"
+            onDrop={() => handleDrop("piernas")}
             onDragOver={handleDragOver}
             style={{ cursor: "pointer" }}
           >
-            <rect x="85" y="180" width="15" height="80" rx="7" fill={regionColors.legs || "#A0A0A0"} />
-            <rect x="100" y="180" width="15" height="80" rx="7" fill={regionColors.legs || "#A0A0A0"} />
+            <rect x="85" y="180" width="15" height="80" rx="7" fill={regionColors.piernas || "#A0A0A0"} />
+            <rect x="100" y="180" width="15" height="80" rx="7" fill={regionColors.piernas || "#A0A0A0"} />
           </g>
           <ellipse cx="100" cy="60" rx="25" ry="30" fill="#F0F0F0" />
         </svg>
